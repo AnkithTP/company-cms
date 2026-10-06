@@ -1,0 +1,75 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+body {
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+/* ============================================================
+   Custom Sidebar Theme (Sleek Dark Navy with Opacity Highlights)
+   ============================================================ */
+.custom-cms-sider {
+    background: #001529 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.custom-cms-sidebar-menu.ant-menu-dark {
+    background: transparent !important;
+    padding: 10px 12px !important;
+    border-right: none !important;
+}
+
+/* Sidebar menu item defaults */
+.custom-cms-sidebar-menu .ant-menu-item {
+    border-radius: 8px !important;
+    margin: 4px 0 !important;
+    width: 100% !important;
+    height: 42px !important;
+    line-height: 42px !important;
+    color: rgba(255, 255, 255, 0.72) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Hovering effect with soft opacity */
+.custom-cms-sidebar-menu .ant-menu-item:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    transform: translateX(3px) !important;
+}
+
+.custom-cms-sidebar-menu .ant-menu-item:hover .ant-menu-item-icon {
+    color: #38bdf8 !important;
+}
+
+/* Selected state with professional opacity highlight & glow */
+.custom-cms-sidebar-menu .ant-menu-item-selected {
+    background: rgba(22, 119, 255, 0.24) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-left: 3px solid #1677ff !important;
+    box-shadow: 0 2px 10px rgba(22, 119, 255, 0.28) !important;
+}
+
+.custom-cms-sidebar-menu .ant-menu-item-selected .ant-menu-item-icon {
+    color: #38bdf8 !important;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5)) !important;
+}
