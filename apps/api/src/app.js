@@ -32,29 +32,70 @@ const app = express();
 
 const allowedOrigins = [
     "http://localhost:5173",
+    "http://localhost:5174",
     "https://company-cms-75c35.web.app",
-    "https://company-cms-75c35.firebaseapp.com"
-];
+    "https://company-cms-75c35.firebaseapp.com",
+    process.env.CLIENT_URL,
+    process.env.FRONTEND_URL,
+    ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : [])
+].filter(Boolean);
+
+const isOriginAllowed = (origin) => {
+    if (!origin) return true;
+    const cleanOrigin = origin.replace(/\/+$/, "").toLowerCase();
+    return (
+        allowedOrigins.some(
+            (o) => o.replace(/\/+$/, "").toLowerCase() === cleanOrigin
+        ) ||
+        cleanOrigin.endsWith(".web.app") ||
+        cleanOrigin.endsWith(".firebaseapp.com") ||
+        process.env.NODE_ENV !== "production"
+    );
+};
+
+// 1. Explicit preflight & CORS header middleware (guarantees headers even before error middleware)
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && isOriginAllowed(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+        res.setHeader(
+            "Access-Control-Allow-Methods",
+            "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
+        );
+        res.setHeader(
+            "Access-Control-Allow-Headers",
+            "Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers"
+        );
+        res.setHeader("Access-Control-Max-Age", "86400");
+    }
+
+    if (req.method === "OPTIONS") {
+        return res.status(200).end();
+    }
+    next();
+});
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests without Origin
-        // e.g. Postman/server-to-server
-        if (!origin) {
+        if (!origin || isOriginAllowed(origin)) {
             return callback(null, true);
         }
-
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-
-        console.log("Blocked CORS origin:", origin);
-        return callback(new Error(`CORS blocked for origin: ${origin}`));
+        console.warn("Blocked CORS origin:", origin);
+        return callback(null, false);
     },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Accept",
+        "Origin",
+        "Access-Control-Request-Method",
+        "Access-Control-Request-Headers"
+    ],
     credentials: true,
-    optionsSuccessStatus: 204
+    optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
