@@ -28,35 +28,15 @@ import dashboardRoutes
 import notificationRoutes
     from "./modules/notification/notification.routes.js";
 
+import "./database/models.js";
+
 const app = express();
 
-const allowedOrigins = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "https://company-cms-75c35.web.app",
-    "https://company-cms-75c35.firebaseapp.com",
-    process.env.CLIENT_URL,
-    process.env.FRONTEND_URL,
-    ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : [])
-].filter(Boolean);
-
-const isOriginAllowed = (origin) => {
-    if (!origin) return true;
-    const cleanOrigin = origin.replace(/\/+$/, "").toLowerCase();
-    return (
-        allowedOrigins.some(
-            (o) => o.replace(/\/+$/, "").toLowerCase() === cleanOrigin
-        ) ||
-        cleanOrigin.endsWith(".web.app") ||
-        cleanOrigin.endsWith(".firebaseapp.com") ||
-        process.env.NODE_ENV !== "production"
-    );
-};
-
-// 1. Explicit preflight & CORS header middleware (guarantees headers even before error middleware)
+// Universal CORS & preflight middleware:
+// Dynamically reflects incoming Origin and handles OPTIONS immediately with 200 OK
 app.use((req, res, next) => {
     const origin = req.headers.origin;
-    if (origin && isOriginAllowed(origin)) {
+    if (origin) {
         res.setHeader("Access-Control-Allow-Origin", origin);
         res.setHeader("Access-Control-Allow-Credentials", "true");
         res.setHeader(
@@ -76,14 +56,9 @@ app.use((req, res, next) => {
     next();
 });
 
-const corsOptions = {
-    origin: function (origin, callback) {
-        if (!origin || isOriginAllowed(origin)) {
-            return callback(null, true);
-        }
-        console.warn("Blocked CORS origin:", origin);
-        return callback(null, false);
-    },
+app.use(cors({
+    origin: true,
+    credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
     allowedHeaders: [
         "Content-Type",
@@ -94,11 +69,9 @@ const corsOptions = {
         "Access-Control-Request-Method",
         "Access-Control-Request-Headers"
     ],
-    credentials: true,
     optionsSuccessStatus: 200
-};
+}));
 
-app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
