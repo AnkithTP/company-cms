@@ -30,7 +30,15 @@ import notificationRoutes
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://company-cms-75c35.web.app",
+    "https://company-cms-75c35.firebaseapp.com"
+];
+
+app.use(cors({
+    origin: allowedOrigins
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
