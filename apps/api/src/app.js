@@ -36,9 +36,28 @@ const allowedOrigins = [
     "https://company-cms-75c35.firebaseapp.com"
 ];
 
-app.use(cors({
-    origin: allowedOrigins
-}));
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests without Origin
+        // e.g. Postman/server-to-server
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        console.log("Blocked CORS origin:", origin);
+        return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
