@@ -28,50 +28,36 @@ import dashboardRoutes
 import notificationRoutes
     from "./modules/notification/notification.routes.js";
 
-import "./database/models.js";
-
 const app = express();
 
-// Universal CORS & preflight middleware:
-// Dynamically reflects incoming Origin and handles OPTIONS immediately with 200 OK
-app.use((req, res, next) => {
-    const origin = req.headers.origin;
-    if (origin) {
-        res.setHeader("Access-Control-Allow-Origin", origin);
-        res.setHeader("Access-Control-Allow-Credentials", "true");
-        res.setHeader(
-            "Access-Control-Allow-Methods",
-            "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
-        );
-        res.setHeader(
-            "Access-Control-Allow-Headers",
-            "Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers"
-        );
-        res.setHeader("Access-Control-Max-Age", "86400");
-    }
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://company-cms-75c35.web.app",
+    "https://company-cms-75c35.firebaseapp.com"
+];
 
-    if (req.method === "OPTIONS") {
-        return res.status(200).end();
-    }
-    next();
-});
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests without Origin
+        // e.g. Postman/server-to-server
+        if (!origin) {
+            return callback(null, true);
+        }
 
-app.use(cors({
-    origin: true,
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        console.log("Blocked CORS origin:", origin);
+        return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
-    allowedHeaders: [
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-        "Accept",
-        "Origin",
-        "Access-Control-Request-Method",
-        "Access-Control-Request-Headers"
-    ],
-    optionsSuccessStatus: 200
-}));
+    optionsSuccessStatus: 204
+};
 
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
