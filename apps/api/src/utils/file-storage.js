@@ -1,39 +1,63 @@
-import fs from "fs/promises";
-import path from "path";
 import crypto from "crypto";
+import { Readable } from "stream";
+import cloudinary from "../config/cloudinary.js";
 
-const uploadDirectory = path.resolve("uploads");
+const getResourceType = (mimeType) => {
+    if (mimeType.startsWith("image/")) {
+        return "image";
+    }
 
-export const saveFile = async (file) => {
-    await fs.mkdir(uploadDirectory, {
-        recursive: true,
-    });
+    if (mimeType.startsWith("video/")) {
+        return "video";
+    }
 
-    const uniqueName =
-        `${crypto.randomUUID()}-${file.originalname}`;
-
-    const filePath = path.join(
-        uploadDirectory,
-        uniqueName
-    );
-
-    await fs.writeFile(
-        filePath,
-        file.buffer
-    );
-
-    return {
-        fileName: uniqueName,
-        storagePath: filePath,
-    };
+    return "raw";
 };
 
-export const deleteFile = async (filePath) => {
+export const saveFile = async (file) => {
+    if (!file || !file.buffer) {
+        throw new Error("File buffer is required");
+    }
+
+    const resourceType = getResourceType(file.mimetype);
+
+    const uniqueName = `${crypto.randomUUID()}-${file.originalname}`;
+
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: "company-cms",
+                public_id: uniqueName,
+                resource_type: resourceType,
+            },
+            (error, result) => {
+                if (error) {
+                    return reject(error);
+                }
+
+                resolve({
+                    fileName: uniqueName,
+                    storagePath: result.public_id,
+                    url: result.secure_url,
+                    resourceType,
+                });
+            }
+        );
+
+        Readable.from(file.buffer).pipe(uploadStream);
+    });
+};
+
+export const deleteFile = async (
+    publicId,
+    resourceType = "image"
+) => {
     try {
-        await fs.unlink(filePath);
+        await cloudinary.uploader.destroy(publicId, {
+            resource_type: resourceType,
+        });
     } catch (error) {
-        if (error.code !== "ENOENT") {
-            throw error;
-        }
+        console.error("Cloudinary delete failed:", error);
+        throw error;
     }
 };

@@ -1,9 +1,8 @@
-import dotenv from "dotenv";
+import "dotenv/config";
+
 import app from "./app.js";
 import sequelize from "./config/database.js";
 import "./database/models.js";
-
-dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
@@ -17,7 +16,10 @@ const startServer = async () => {
             console.log(`Server running on http://localhost:${PORT}`);
         });
     } catch (error) {
-        console.error("Unable to connect to the database:", error.message);
+        console.error(
+            "Unable to connect to the database:",
+            error.message
+        );
         process.exit(1);
     }
 };
