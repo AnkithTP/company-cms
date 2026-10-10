@@ -9,6 +9,8 @@ import {
     getAllMedia,
     getMediaById,
     deleteMedia,
+    searchStockPhotos,
+    importStockPhoto,
 } from "./media.controller.js";
 
 const router = express.Router();
@@ -26,6 +28,20 @@ router.get(
     authenticate,
     requirePermission("content:read"),
     getAllMedia
+);
+
+// Unsplash Stock Photos Integration
+router.get(
+    "/stock/search",
+    authenticate,
+    searchStockPhotos
+);
+
+router.post(
+    "/stock/import",
+    authenticate,
+    requirePermission("media:upload"),
+    importStockPhoto
 );
 
 router.get(

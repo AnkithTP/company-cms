@@ -1,4 +1,5 @@
 import * as mediaService from "./media.service.js";
+import * as stockMediaService from "./stock-media.service.js";
 
 export const uploadMedia = async (req, res, next) => {
     try {
@@ -55,6 +56,42 @@ export const deleteMedia = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: "Media deleted successfully",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const searchStockPhotos = async (req, res, next) => {
+    try {
+        const query = req.query.query || req.query.q || "business";
+        const page = parseInt(req.query.page || "1", 10);
+        const perPage = parseInt(req.query.per_page || "18", 10);
+
+        const data = await stockMediaService.searchStockPhotos(query, page, perPage);
+
+        res.status(200).json({
+            success: true,
+            data,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const importStockPhoto = async (req, res, next) => {
+    try {
+        const { photoUrl, downloadLocation, title, photographer, photographerUrl } = req.body;
+
+        const media = await stockMediaService.importStockPhoto(
+            { photoUrl, downloadLocation, title, photographer, photographerUrl },
+            req.user.id
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Stock photo imported and stored in CMS library successfully",
+            data: media,
         });
     } catch (error) {
         next(error);
